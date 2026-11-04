@@ -6,6 +6,7 @@ Lancement (depuis la racine du dépôt, SANS --reload : les contrats sont en mé
 from contextlib import closing
 from datetime import datetime, timezone
 import sqlite3
+from typing import Optional
 import uuid
 
 from fastapi import FastAPI, Header, HTTPException
@@ -80,7 +81,7 @@ def lire_catalogue():
 
 
 @app.post("/contracts/negotiate")
-def negocier_contrat(demande: DemandeContrat, x_api_key: str | None = Header(default=None)):
+def negocier_contrat(demande: DemandeContrat, x_api_key: Optional[str] = Header(default=None)):
     ev = "negociation"
     # Ordre des contrôles imposé par le sujet : clé (401) > dataset (404) > finalité (403) > consommateur (403)
     controler_cle(x_api_key, ev)
@@ -107,7 +108,7 @@ def negocier_contrat(demande: DemandeContrat, x_api_key: str | None = Header(def
 def lire_classifications(
     contract_id: str,
     consumer_id: str,
-    x_api_key: str | None = Header(default=None),
+    x_api_key: Optional[str] = Header(default=None),
 ):
     ev = "classifications"
     controler_cle(x_api_key, ev)
@@ -138,7 +139,7 @@ def lire_classifications(
 
 
 @app.get("/audit")
-def lire_audit(x_api_key: str | None = Header(default=None)):
+def lire_audit(x_api_key: Optional[str] = Header(default=None)):
     """Journal d'accès du nœud A (traçabilité)."""
     controler_cle(x_api_key, "audit")
     return journal

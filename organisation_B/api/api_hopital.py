@@ -3,6 +3,8 @@
 Lancement depuis la racine du projet (mini-espace-federe/), sans --reload :
     python -m uvicorn organisation_B.api.api_hopital:app --port 8002
 """
+from typing import Optional
+
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
@@ -38,7 +40,7 @@ def accueil():
 
 
 @app.post("/compute")
-def calculer(req: RequeteCalcul, x_api_key: str | None = Header(default=None)):
+def calculer(req: RequeteCalcul, x_api_key: Optional[str] = Header(default=None)):
     # 1. Clé API (401)
     verifier_cle(x_api_key)
 
