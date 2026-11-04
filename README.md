@@ -24,13 +24,18 @@ Flux (TP 4) :
 
 ```
 mini-espace-federe/
-├── organisation_A/            
+├── organisation_A/            # voir organisation_A/README_A.md
 │   ├── database/
-│   ├── api/
+│   ├── api/                        # api_air_tp2, api_air_v3, api_air (TP4)
 │   └── security/
-├── organisation_B/            
-│   ├── database/setup_hopital.py   # crée hopital.db (10 jours)
-│   ├── api/api_hopital.py          # POST /compute
+├── organisation_B/
+│   ├── database/
+│   │   ├── setup_hopital.py        # hopital_tp1.db (5 j, TP1-3) / hopital.db (10 j, TP4)
+│   │   └── consulter_hopital.py    # TP1 : affiche les bases
+│   ├── api/
+│   │   ├── api_hopital_tp2.py      # TP2 : /admissions, /statistiques (brut)
+│   │   ├── api_hopital_v3.py       # TP3 : /analyse-locale (clé API)
+│   │   └── api_hopital.py          # TP4 : POST /compute
 │   ├── services/
 │   │   ├── confidentialite.py      # seuil minimal, bruit de Laplace, budget epsilon
 │   │   └── calcul_local.py         # agrégats calculés près des données
@@ -38,9 +43,13 @@ mini-espace-federe/
 │       ├── auth.py                 # clé API (401)
 │       └── signature.py            # vérification HMAC de A (403)
 ├── laboratoire_C/
-│   └── client_analyse.py
+│   ├── tp2_client.py               # TP2
+│   ├── tp3_laboratoire.py          # TP3
+│   ├── tp3_attaque_difference.py   # TP3, section 8
+│   └── client_analyse.py           # TP4
 ├── tests/
-│   └── test_organisation_B.py
+│   ├── test_organisation_B.py      # TP4
+│   └── test_organisation_B_tp1_tp3.py
 ├── requirements.txt
 └── README.md
 ```
@@ -76,7 +85,34 @@ Le format du message signé doit aussi être identique des deux côtés :
 JSON de `{contract_id, consumer_id, classifications}` avec `sort_keys=True`,
 séparateurs `(",", ":")` et `ensure_ascii=False`.
 
-## Lancement
+## TP 1 à 3 (bases de 5 jours)
+
+Un seul TP à la fois : les API utilisent toujours les ports 8001 et 8002.
+Arrêtez les serveurs (Ctrl+C) avant de passer au TP suivant.
+
+```
+# TP1 : créer et consulter les bases de 5 jours
+python organisation_A/database/setup_data.py --jeu tp1
+python organisation_B/database/setup_hopital.py --jeu tp1
+python organisation_A/database/consulter_environnement.py
+python organisation_B/database/consulter_hopital.py
+
+# TP2 : API ouvertes (données brutes) -> attendu : 16 et 8,5
+python -m uvicorn organisation_A.api.api_air_tp2:app --port 8001
+python -m uvicorn organisation_B.api.api_hopital_tp2:app --port 8002
+python laboratoire_C/tp2_client.py
+
+# TP3 : catégories + calcul local + clé API -> attendu : 16, 8,5, différence 7,5
+# PowerShell : $env:CLE_ENVIRONNEMENT="demo-air-123" ; $env:CLE_HOPITAL="demo-hopital-456"
+python -m uvicorn organisation_A.api.api_air_v3:app --port 8001
+python -m uvicorn organisation_B.api.api_hopital_v3:app --port 8002
+python laboratoire_C/tp3_laboratoire.py
+python laboratoire_C/tp3_attaque_difference.py   # révèle l'admission du 01/10 (8.0)
+```
+
+Les clés du TP3 (`demo-air-123`, `demo-hopital-456`) sont différentes de celles du TP4.
+
+## Lancement (TP 4)
 
 Toutes les commandes se lancent **depuis la racine du projet**, dans trois terminaux
 avec l'environnement virtuel activé. N'utilisez pas `--reload` : chaque redémarrage

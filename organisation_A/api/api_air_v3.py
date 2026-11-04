@@ -5,6 +5,7 @@
 """
 from contextlib import closing
 import sqlite3
+from typing import Optional
 
 from fastapi import FastAPI, Header, HTTPException
 
@@ -20,7 +21,7 @@ def accueil():
 
 
 @app.get("/categories")
-def categories(x_api_key: str | None = Header(default=None)):
+def categories(x_api_key: Optional[str] = Header(default=None)):
     if not cle_valide(x_api_key, config.CLE_API_TP3):
         raise HTTPException(status_code=401, detail="Clé API invalide")
     with closing(sqlite3.connect(config.DB_AIR_TP1)) as db:
